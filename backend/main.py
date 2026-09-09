@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from db.database import engine, Base
+from models import user, organization, university, challenge, team, submission, skill
+from routes import auth
+
+# Initialize tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="SIH26043 Challenge Platform API",
@@ -14,6 +20,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
 
 @app.get("/")
 def read_root():

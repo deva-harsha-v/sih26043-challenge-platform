@@ -20,13 +20,15 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Environment files
+# Environment files & Local Databases
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 *.env
+*.db
+*.sqlite3
 
 # IDE & Editor settings
 .vscode/
@@ -38,7 +40,6 @@ Thumbs.db
 
 # Database & Docker data
 postgres_data/
-*.sqlite3
 
 # Antigravity scratch & logs
 *.log
