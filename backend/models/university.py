@@ -1,0 +1,1 @@
+# University SQLAlchemy Model Stub

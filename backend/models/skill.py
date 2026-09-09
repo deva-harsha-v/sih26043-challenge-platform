@@ -1,0 +1,1 @@
+# Skill SQLAlchemy Model Stub

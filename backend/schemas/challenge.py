@@ -1,0 +1,1 @@
+# Challenge Pydantic Schema Stub

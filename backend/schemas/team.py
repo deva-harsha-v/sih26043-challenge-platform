@@ -1,0 +1,1 @@
+# Team Pydantic Schema Stub

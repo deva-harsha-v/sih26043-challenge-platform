@@ -1,0 +1,1 @@
+# Challenge SQLAlchemy Model Stub

@@ -1,0 +1,5 @@
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/teams", tags=["Teams"])
+
+# Teams endpoints stub
