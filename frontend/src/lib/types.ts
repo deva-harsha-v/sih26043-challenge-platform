@@ -31,3 +31,58 @@ export interface AuthResponse {
   token_type: string;
   user: User;
 }
+
+export type ChallengeStatus = 'draft' | 'open' | 'active' | 'submission' | 'review' | 'completed';
+
+export interface Challenge {
+  id: number;
+  organization_id: number;
+  organization_name: string;
+  organization_website?: string;
+  title: string;
+  description: string;
+  problem_statement?: string;
+  category: string;
+  difficulty: string;
+  reward?: string;
+  max_team_size: number;
+  status: ChallengeStatus;
+  deadline?: string;
+  skills: string[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ChallengeCreateInput {
+  title: string;
+  description: string;
+  problem_statement: string;
+  category: string;
+  reward?: string;
+  difficulty?: string;
+  max_team_size?: number;
+  deadline?: string;
+  skills: string[];
+}
+
+export interface ChallengeUpdateInput {
+  title?: string;
+  description?: string;
+  problem_statement?: string;
+  category?: string;
+  reward?: string;
+  difficulty?: string;
+  max_team_size?: number;
+  status?: ChallengeStatus;
+  deadline?: string;
+  skills?: string[];
+}
+
+export interface ChallengeFilters {
+  search?: string;
+  skill?: string;
+  status?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+}

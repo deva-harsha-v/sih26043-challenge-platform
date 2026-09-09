@@ -57,7 +57,10 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
 - **Primary Keys**: Explicit `id` column (UUID or Auto-increment Integer).
 - **Foreign Keys**: Named explicitly as `<target_table_singular>_id` with `ON DELETE CASCADE` or `ON DELETE SET NULL` as appropriate.
 - **Timestamp Tracking**: Every entity table must include `created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP` and `updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`.
-- **Enums**: Roles (`user_role`), Challenge Status (`draft`, `active`, `closed`, `evaluated`), Submission Status (`submitted`, `under_review`, `accepted`, `rejected`).
+- **Enums**:
+  - Roles (`user_role`): `organization`, `university`, `contributor`, `admin`
+  - Challenge Status (`challenge_status`): `draft`, `open`, `active`, `submission`, `review`, `completed`
+  - Submission Status (`submission_status`): `submitted`, `under_review`, `accepted`, `rejected`
 
 ---
 
@@ -65,13 +68,10 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
 
 Future development tasks MUST strictly follow the phased roadmap below:
 
-- **Phase 1: Scaffolding & Canonical Database Setup** *(Current)*
-  - Establish complete directory tree, docker-compose configuration, and `schema.sql`.
-- **Phase 2: Authentication & RBAC Middleware**
-  - Implement FastAPI JWT creation/verification, password hashing, and role guard middleware (`role_guard.py`).
-  - Next.js Auth handlers and login/register forms.
-- **Phase 3: Profiles & Organization Dashboards**
-  - User profiles (Contributor, Org, University), challenge creation endpoints and pages.
+- **Phase 1: Scaffolding & Canonical Database Setup** *(Completed)*
+- **Phase 2: Authentication & RBAC Middleware** *(Completed)*
+- **Phase 3: Challenge Management & Profiles** *(Current)*
+  - Challenge CRUD, skill tagging, search & filter endpoints, Next.js catalog & detail pages.
 - **Phase 4: Team Formation & Matching Service**
   - Skill tagging system, team creation, join requests, and skill-matching recommendation logic.
 - **Phase 5: Submissions & Evaluation Pipeline**

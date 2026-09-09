@@ -1,7 +1,7 @@
 -- SIH26043 Challenge Platform - Database Schema
 
 CREATE TYPE user_role AS ENUM ('organization', 'university', 'contributor', 'admin');
-CREATE TYPE challenge_status AS ENUM ('draft', 'active', 'closed', 'evaluated');
+CREATE TYPE challenge_status AS ENUM ('draft', 'open', 'active', 'submission', 'review', 'completed');
 CREATE TYPE submission_status AS ENUM ('submitted', 'under_review', 'accepted', 'rejected');
 
 -- Users table
@@ -57,7 +57,7 @@ CREATE TABLE challenges (
     reward VARCHAR(255),
     difficulty VARCHAR(50) DEFAULT 'Medium',
     max_team_size INTEGER DEFAULT 4,
-    status challenge_status DEFAULT 'draft',
+    status challenge_status DEFAULT 'open',
     deadline TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
