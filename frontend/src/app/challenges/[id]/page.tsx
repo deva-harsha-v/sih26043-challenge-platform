@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getChallengeById, updateChallenge } from '@/lib/api';
+import { getChallengeById, updateChallenge, getTeams, createTeam } from '@/lib/api';
 import { fetchCurrentUser } from '@/lib/auth';
-import { Challenge, User, ChallengeStatus } from '@/lib/types';
+import { Challenge, User, ChallengeStatus, Team } from '@/lib/types';
 
 export default function ChallengeDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -17,6 +18,13 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
   const [editDescription, setEditDescription] = useState('');
   const [editStatus, setEditStatus] = useState<ChallengeStatus>('open');
   const [saving, setSaving] = useState(false);
+
+  // Form Team Modal State
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [teamName, setTeamName] = useState('');
+  const [teamDesc, setTeamDesc] = useState('');
+  const [teamCreating, setTeamCreating] = useState(false);
+  const [teamError, setTeamError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -27,6 +35,9 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
       setEditTitle(c.title);
       setEditDescription(c.description);
       setEditStatus(c.status);
+
+      const tList = await getTeams(params.id);
+      setTeams(tList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -56,6 +67,29 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
     }
   };
 
+  const handleFormTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!challenge) return;
+    setTeamError(null);
+    setTeamCreating(true);
+
+    try {
+      const newTeam = await createTeam({
+        name: teamName,
+        challenge_id: challenge.id,
+        description: teamDesc || undefined,
+      });
+      setShowTeamModal(false);
+      setTeamName('');
+      setTeamDesc('');
+      router.push(`/teams/${newTeam.id}`);
+    } catch (err: any) {
+      setTeamError(err.message || 'Failed to form team');
+    } finally {
+      setTeamCreating(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-12 text-center text-gray-500">Loading challenge details...</div>;
   }
@@ -72,6 +106,7 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
   }
 
   const isOwner = user && (user.org_name === challenge.organization_name || user.role === 'admin');
+  const isContributor = user && user.role === 'contributor';
 
   const statusColors: Record<string, string> = {
     open: 'bg-green-100 text-green-800 border-green-200',
@@ -223,7 +258,104 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
             </div>
           </div>
         )}
+
+        {/* Participating Teams Section */}
+        <div className="pt-6 border-t">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">Teams for this Challenge</h3>
+              <p className="text-xs text-gray-500">Student and researcher teams solving this problem statement</p>
+            </div>
+
+            {isContributor && (
+              <button
+                onClick={() => setShowTeamModal(true)}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+              >
+                + Form Team for this Challenge
+              </button>
+            )}
+          </div>
+
+          {teams.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-6 text-center text-sm text-gray-500 border border-dashed">
+              No teams formed for this challenge yet. Be the first to form a team!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {teams.map((t) => (
+                <div key={t.id} className="border p-4 rounded-lg bg-gray-50 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-900">{t.name}</h4>
+                    <p className="text-xs text-gray-500">Leader: {t.leader_name} • {t.members.length} member(s)</p>
+                  </div>
+                  <Link href={`/teams/${t.id}`} className="text-xs font-semibold text-indigo-600 hover:underline">
+                    View →
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Form Team Modal */}
+      {showTeamModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Form Team</h2>
+            <p className="text-xs text-gray-500 mb-4">Challenge: {challenge.title}</p>
+
+            {teamError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-4">
+                {teamError}
+              </div>
+            )}
+
+            <form onSubmit={handleFormTeam} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+                <input
+                  type="text"
+                  required
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-indigo-500"
+                  placeholder="e.g. Innovators Assembly"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <textarea
+                  rows={3}
+                  value={teamDesc}
+                  onChange={(e) => setTeamDesc(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-indigo-500"
+                  placeholder="Brief description of your team..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowTeamModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={teamCreating}
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {teamCreating ? 'Creating...' : 'Form Team'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

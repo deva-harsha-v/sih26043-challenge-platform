@@ -1,43 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from db.database import Base, get_db
-from models.user import User, UserRole
-from models.organization import Organization
-from models.university import University
-from models.challenge import Challenge, ChallengeStatus
-from models.skill import Skill
-from main import app
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-@pytest.fixture(autouse=True)
-def setup_db():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-client = TestClient(app)
-
-def create_user_and_token(email: str, role: str, org_name: str = None) -> tuple[str, dict]:
+def create_user_and_token(client: TestClient, email: str, role: str, org_name: str = None) -> tuple[str, dict]:
     payload = {
         "email": email,
         "password": "Password123!",
@@ -49,8 +13,8 @@ def create_user_and_token(email: str, role: str, org_name: str = None) -> tuple[
     data = res.json()
     return data["access_token"], data["user"]
 
-def test_create_challenge_as_organization_success():
-    token, _ = create_user_and_token("org1@example.com", "organization", "Tech Solutions")
+def test_create_challenge_as_organization_success(client):
+    token, _ = create_user_and_token(client, "org1@example.com", "organization", "Tech Solutions")
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "title": "AI Agriculture Scanner",
@@ -70,8 +34,8 @@ def test_create_challenge_as_organization_success():
     assert data["status"] == "open"
     assert "Python" in data["skills"]
 
-def test_create_challenge_as_contributor_fails_403():
-    token, _ = create_user_and_token("student@example.com", "contributor")
+def test_create_challenge_as_contributor_fails_403(client):
+    token, _ = create_user_and_token(client, "student@example.com", "contributor")
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "title": "Unauthorized Challenge",
@@ -82,8 +46,8 @@ def test_create_challenge_as_contributor_fails_403():
     res = client.post("/challenges", json=payload, headers=headers)
     assert res.status_code == 403
 
-def test_list_challenges_returns_created_items():
-    token, _ = create_user_and_token("org_list@example.com", "organization", "Acme Inc")
+def test_list_challenges_returns_created_items(client):
+    token, _ = create_user_and_token(client, "org_list@example.com", "organization", "Acme Inc")
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "title": "Smart Logistics Optimization",
@@ -100,8 +64,8 @@ def test_list_challenges_returns_created_items():
     assert len(items) >= 1
     assert any(c["title"] == "Smart Logistics Optimization" for c in items)
 
-def test_filter_challenges_by_skill_isolates_matching_item():
-    token, _ = create_user_and_token("org_filter1@example.com", "organization", "Filter Org")
+def test_filter_challenges_by_skill_isolates_matching_item(client):
+    token, _ = create_user_and_token(client, "org_filter1@example.com", "organization", "Filter Org")
     headers = {"Authorization": f"Bearer {token}"}
     
     # Challenge A with Python skill
@@ -136,8 +100,8 @@ def test_filter_challenges_by_skill_isolates_matching_item():
     assert len(py_items) == 1
     assert py_items[0]["title"] == "Python Data Pipeline"
 
-def test_filter_challenges_by_status_isolates_matching_item():
-    token, _ = create_user_and_token("org_filter2@example.com", "organization", "Status Org")
+def test_filter_challenges_by_status_isolates_matching_item(client):
+    token, _ = create_user_and_token(client, "org_filter2@example.com", "organization", "Status Org")
     headers = {"Authorization": f"Bearer {token}"}
     
     # Create challenge
@@ -167,8 +131,8 @@ def test_filter_challenges_by_status_isolates_matching_item():
     assert len(active_items) == 1
     assert active_items[0]["title"] == "Open Challenge"
 
-def test_get_challenge_by_id_returns_details():
-    token, _ = create_user_and_token("org_detail@example.com", "organization", "Detail Org")
+def test_get_challenge_by_id_returns_details(client):
+    token, _ = create_user_and_token(client, "org_detail@example.com", "organization", "Detail Org")
     headers = {"Authorization": f"Bearer {token}"}
     res_create = client.post("/challenges", json={
         "title": "Detail View Challenge",
@@ -186,9 +150,9 @@ def test_get_challenge_by_id_returns_details():
     assert data["problem_statement"] == "In-depth problem statement text"
     assert "Bioinformatics" in data["skills"]
 
-def test_update_challenge_by_non_owner_fails_403():
-    token_owner, _ = create_user_and_token("owner@example.com", "organization", "Owner Org")
-    token_other, _ = create_user_and_token("other_org@example.com", "organization", "Other Org")
+def test_update_challenge_by_non_owner_fails_403(client):
+    token_owner, _ = create_user_and_token(client, "owner@example.com", "organization", "Owner Org")
+    token_other, _ = create_user_and_token(client, "other_org@example.com", "organization", "Other Org")
 
     headers_owner = {"Authorization": f"Bearer {token_owner}"}
     headers_other = {"Authorization": f"Bearer {token_other}"}
@@ -204,8 +168,8 @@ def test_update_challenge_by_non_owner_fails_403():
     res_update = client.patch(f"/challenges/{c_id}", json={"title": "Hacked Title"}, headers=headers_other)
     assert res_update.status_code == 403
 
-def test_update_challenge_by_owner_succeeds():
-    token_owner, _ = create_user_and_token("owner2@example.com", "organization", "Owner Org 2")
+def test_update_challenge_by_owner_succeeds(client):
+    token_owner, _ = create_user_and_token(client, "owner2@example.com", "organization", "Owner Org 2")
     headers_owner = {"Authorization": f"Bearer {token_owner}"}
 
     res_create = client.post("/challenges", json={
@@ -222,9 +186,9 @@ def test_update_challenge_by_owner_succeeds():
     assert data["title"] == "Updated Title"
     assert data["reward"] == "$5,000"
 
-def test_delete_challenge_by_non_owner_fails_403():
-    token_owner, _ = create_user_and_token("del_owner@example.com", "organization", "Del Owner Org")
-    token_other, _ = create_user_and_token("del_other@example.com", "contributor")
+def test_delete_challenge_by_non_owner_fails_403(client):
+    token_owner, _ = create_user_and_token(client, "del_owner@example.com", "organization", "Del Owner Org")
+    token_other, _ = create_user_and_token(client, "del_other@example.com", "contributor")
 
     headers_owner = {"Authorization": f"Bearer {token_owner}"}
     headers_other = {"Authorization": f"Bearer {token_other}"}

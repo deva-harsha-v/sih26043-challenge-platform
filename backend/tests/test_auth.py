@@ -1,41 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from db.database import Base, get_db
-from models.user import User, UserRole
-from models.organization import Organization
-from models.university import University
-from main import app
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
-
-@pytest.fixture(autouse=True)
-def setup_db():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-client = TestClient(app)
-
-def test_register_success():
+def test_register_success(client):
     payload = {
         "email": "testorg@example.com",
         "password": "securepassword123",
@@ -51,7 +16,7 @@ def test_register_success():
     assert data["user"]["role"] == "organization"
     assert data["user"]["org_name"] == "Acme Corp"
 
-def test_register_duplicate_email_fails():
+def test_register_duplicate_email_fails(client):
     payload = {
         "email": "duplicate@example.com",
         "password": "password123",
@@ -65,7 +30,7 @@ def test_register_duplicate_email_fails():
     assert second_res.status_code == 400
     assert "already registered" in second_res.json()["detail"]
 
-def test_login_success():
+def test_login_success(client):
     register_payload = {
         "email": "loginuser@example.com",
         "password": "mypassword",
@@ -84,7 +49,7 @@ def test_login_success():
     assert "access_token" in data
     assert data["user"]["email"] == "loginuser@example.com"
 
-def test_login_wrong_password_fails():
+def test_login_wrong_password_fails(client):
     register_payload = {
         "email": "user2@example.com",
         "password": "correctpassword",
@@ -101,11 +66,11 @@ def test_login_wrong_password_fails():
     assert response.status_code == 401
     assert "Invalid email or password" in response.json()["detail"]
 
-def test_get_me_missing_token_fails():
+def test_get_me_missing_token_fails(client):
     response = client.get("/auth/me")
     assert response.status_code == 401
 
-def test_get_me_valid_token_success():
+def test_get_me_valid_token_success(client):
     register_payload = {
         "email": "meuser@example.com",
         "password": "password123",

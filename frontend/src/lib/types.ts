@@ -86,3 +86,29 @@ export interface ChallengeFilters {
   page?: number;
   limit?: number;
 }
+
+export interface TeamMember {
+  user_id: number;
+  full_name: string;
+  email: string;
+  role_in_team: string;
+  joined_at: string;
+}
+
+export interface Team {
+  id: number;
+  name: string;
+  description?: string;
+  challenge_id: number;
+  challenge_title: string;
+  leader_id: number;
+  leader_name: string;
+  members: TeamMember[];
+  created_at: string;
+}
+
+export interface TeamCreateInput {
+  name: string;
+  challenge_id: number;
+  description?: string;
+}

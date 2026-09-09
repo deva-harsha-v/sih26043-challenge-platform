@@ -61,6 +61,16 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
   - Roles (`user_role`): `organization`, `university`, `contributor`, `admin`
   - Challenge Status (`challenge_status`): `draft`, `open`, `active`, `submission`, `review`, `completed`
   - Submission Status (`submission_status`): `submitted`, `under_review`, `accepted`, `rejected`
+- **Core Entities & Tables**:
+  - `users` (`id`, `email`, `password_hash`, `full_name`, `role`, `avatar_url`, `bio`, `created_at`, `updated_at`)
+  - `organizations` (`id`, `user_id`, `name`, `website`, `description`, `logo_url`, `created_at`)
+  - `universities` (`id`, `user_id`, `name`, `location`, `domain`, `logo_url`, `created_at`)
+  - `challenges` (`id`, `organization_id`, `title`, `description`, `problem_statement`, `category`, `reward`, `difficulty`, `max_team_size`, `status`, `deadline`, `created_at`, `updated_at`)
+  - `skills` (`id`, `name`, `category`)
+  - `challenge_skills` (`id`, `challenge_id`, `skill_id`)
+  - `teams` (`id`, `leader_id`, `challenge_id`, `name`, `description`, `created_at`, `updated_at`)
+  - `team_members` (`id`, `team_id`, `user_id`, `role_in_team`, `joined_at`)
+  - `submissions` (`id`, `challenge_id`, `team_id`, `title`, `repo_url`, `demo_url`, `documentation`, `status`, `created_at`, `updated_at`)
 
 ---
 
@@ -70,10 +80,9 @@ Future development tasks MUST strictly follow the phased roadmap below:
 
 - **Phase 1: Scaffolding & Canonical Database Setup** *(Completed)*
 - **Phase 2: Authentication & RBAC Middleware** *(Completed)*
-- **Phase 3: Challenge Management & Profiles** *(Current)*
-  - Challenge CRUD, skill tagging, search & filter endpoints, Next.js catalog & detail pages.
-- **Phase 4: Team Formation & Matching Service**
-  - Skill tagging system, team creation, join requests, and skill-matching recommendation logic.
+- **Phase 3: Challenge Management & Profiles** *(Completed)*
+- **Phase 4: Team Formation & Matching Service** *(Current)*
+  - Team creation, membership management, leader promotion cascade, one-team-per-challenge constraint, Next.js team pages.
 - **Phase 5: Submissions & Evaluation Pipeline**
   - Solution submissions, repo/demo attachments, evaluator scoring interfaces.
 
