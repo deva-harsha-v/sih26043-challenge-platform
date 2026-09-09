@@ -60,7 +60,7 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
 - **Enums**:
   - Roles (`user_role`): `organization`, `university`, `contributor`, `admin`
   - Challenge Status (`challenge_status`): `draft`, `open`, `active`, `submission`, `review`, `completed`
-  - Submission Status (`submission_status`): `submitted`, `under_review`, `accepted`, `rejected`
+  - Submission Status (`submission_status`): `submitted`, `under_review`, `shortlisted`, `accepted`, `rejected`
 - **Core Entities & Tables**:
   - `users` (`id`, `email`, `password_hash`, `full_name`, `role`, `avatar_url`, `bio`, `created_at`, `updated_at`)
   - `organizations` (`id`, `user_id`, `name`, `website`, `description`, `logo_url`, `created_at`)
@@ -70,7 +70,7 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
   - `challenge_skills` (`id`, `challenge_id`, `skill_id`)
   - `teams` (`id`, `leader_id`, `challenge_id`, `name`, `description`, `created_at`, `updated_at`)
   - `team_members` (`id`, `team_id`, `user_id`, `role_in_team`, `joined_at`)
-  - `submissions` (`id`, `challenge_id`, `team_id`, `title`, `repo_url`, `demo_url`, `documentation`, `status`, `created_at`, `updated_at`)
+  - `submissions` (`id`, `challenge_id`, `team_id`, `title`, `description`, `document_url`, `status`, `reviewer_notes`, `created_at`, `updated_at`, `reviewed_at`)
 
 ---
 

@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getChallengeById, updateChallenge, getTeams, createTeam } from '@/lib/api';
+import { getChallengeById, updateChallenge, getTeams, createTeam, getSubmissionsForChallenge } from '@/lib/api';
 import { fetchCurrentUser } from '@/lib/auth';
-import { Challenge, User, ChallengeStatus, Team } from '@/lib/types';
+import { Challenge, User, ChallengeStatus, Team, Submission } from '@/lib/types';
 
 export default function ChallengeDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +39,15 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
 
       const tList = await getTeams(params.id);
       setTeams(tList);
+
+      if (u && (u.org_name === c.organization_name || u.role === 'admin' || u.role === 'organization')) {
+        try {
+          const subs = await getSubmissionsForChallenge(params.id);
+          setSubmissions(subs);
+        } catch {
+          // If non-owner or no permissions, ignore
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -118,7 +128,7 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6">
+    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 space-y-8">
       <div className="mb-6">
         <Link href="/challenges" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
           ← Back to All Challenges
@@ -256,6 +266,46 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Submissions Received Section for Challenge Owner */}
+        {isOwner && (
+          <div className="pt-6 border-t">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">📥 Submissions Received ({submissions.length})</h3>
+                <p className="text-xs text-gray-500">Solutions submitted by teams for evaluation and scoring</p>
+              </div>
+            </div>
+
+            {submissions.length === 0 ? (
+              <div className="bg-gray-50 rounded-lg p-6 text-center text-sm text-gray-500 border border-dashed">
+                No solution submissions received for this challenge yet.
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200 border rounded-lg overflow-hidden">
+                {submissions.map((sub) => (
+                  <div key={sub.id} className="p-4 bg-gray-50 flex justify-between items-center hover:bg-gray-100 transition">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-sm text-gray-900">{sub.title}</span>
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase border bg-blue-50 text-blue-700 border-blue-200">
+                          {sub.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Submitted by Team <span className="font-semibold text-gray-700">{sub.team_name}</span></p>
+                    </div>
+                    <Link
+                      href={`/submissions/${sub.id}`}
+                      className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700 transition"
+                    >
+                      Review & Score →
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

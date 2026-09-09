@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TeamPanel from '@/components/TeamPanel';
-import { getTeamById, joinTeam, leaveTeam, removeTeamMember } from '@/lib/api';
+import SubmissionForm from '@/components/SubmissionForm';
+import { getTeamById, joinTeam, leaveTeam, removeTeamMember, getSubmissionsForChallenge } from '@/lib/api';
 import { fetchCurrentUser } from '@/lib/auth';
-import { Team, User } from '@/lib/types';
+import { Team, User, Submission } from '@/lib/types';
 
 export default function TeamDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [team, setTeam] = useState<Team | null>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -22,6 +24,16 @@ export default function TeamDetailPage({ params }: { params: { id: string } }) {
       setUser(u);
       const t = await getTeamById(params.id);
       setTeam(t);
+
+      if (u && t.challenge_id) {
+        try {
+          const subs = await getSubmissionsForChallenge(t.challenge_id);
+          const teamSub = subs.find((s) => s.team_id === t.id);
+          setSubmission(teamSub || null);
+        } catch {
+          // If non-owner or no team submission found, ignore error
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -91,15 +103,15 @@ export default function TeamDetailPage({ params }: { params: { id: string } }) {
   const canJoin = isContributor && !isMember;
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6">
-      <div className="mb-6">
+    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 space-y-8">
+      <div>
         <Link href="/teams" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
           ← Back to Teams Directory
         </Link>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
@@ -156,6 +168,50 @@ export default function TeamDetailPage({ params }: { params: { id: string } }) {
           isLeader={Boolean(isLeader)}
           onRemoveMember={handleRemoveMember}
         />
+
+        {/* Solution Submission Section for Team Members */}
+        {isMember && (
+          <div className="pt-6 border-t">
+            {submission ? (
+              <div className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-6 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider block mb-1">
+                      Submitted Solution
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-900">{submission.title}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Submitted on {new Date(submission.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full uppercase border bg-blue-50 text-blue-700 border-blue-200">
+                    {submission.status.replace('_', ' ')}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700">{submission.description}</p>
+                {submission.reviewer_notes && (
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded text-xs text-amber-900">
+                    <span className="font-bold">Reviewer Note: </span>
+                    {submission.reviewer_notes}
+                  </div>
+                )}
+                <div className="flex space-x-3 pt-2">
+                  <Link
+                    href={`/submissions/${submission.id}`}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition"
+                  >
+                    View Submission Detail →
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <SubmissionForm
+                teamId={team.id}
+                challengeId={team.challenge_id}
+                existingSubmission={submission}
+                onSuccess={(newSub) => setSubmission(newSub)}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

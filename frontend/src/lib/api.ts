@@ -1,5 +1,9 @@
 import { getAuthToken } from './auth';
-import { Challenge, ChallengeCreateInput, ChallengeUpdateInput, ChallengeFilters, Team, TeamCreateInput } from './types';
+import {
+  Challenge, ChallengeCreateInput, ChallengeUpdateInput, ChallengeFilters,
+  Team, TeamCreateInput,
+  Submission, SubmissionCreateInput, SubmissionStatusUpdateInput
+} from './types';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -178,6 +182,80 @@ export async function removeTeamMember(teamId: number | string, userId: number |
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ detail: 'Failed to remove member' }));
     throw new Error(errorData.detail || 'Failed to remove member');
+  }
+
+  return res.json();
+}
+
+// Submission API Functions
+export async function submitSolution(data: SubmissionCreateInput): Promise<Submission> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(`${API_BASE_URL}/submissions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to submit solution' }));
+    throw new Error(errorData.detail || 'Failed to submit solution');
+  }
+
+  return res.json();
+}
+
+export async function getSubmissionById(id: number | string): Promise<Submission> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE_URL}/submissions/${id}`, { headers });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to fetch submission' }));
+    throw new Error(errorData.detail || 'Failed to fetch submission');
+  }
+  return res.json();
+}
+
+export async function getSubmissionsForChallenge(challengeId: number | string): Promise<Submission[]> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(`${API_BASE_URL}/submissions?challenge_id=${challengeId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to fetch submissions' }));
+    throw new Error(errorData.detail || 'Failed to fetch submissions');
+  }
+
+  return res.json();
+}
+
+export async function updateSubmissionStatus(id: number | string, data: SubmissionStatusUpdateInput): Promise<Submission> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(`${API_BASE_URL}/submissions/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to update submission status' }));
+    throw new Error(errorData.detail || 'Failed to update submission status');
   }
 
   return res.json();

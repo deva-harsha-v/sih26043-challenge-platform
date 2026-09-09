@@ -112,3 +112,35 @@ export interface TeamCreateInput {
   challenge_id: number;
   description?: string;
 }
+
+export type SubmissionStatus = 'submitted' | 'under_review' | 'shortlisted' | 'accepted' | 'rejected';
+
+export interface Submission {
+  id: number;
+  challenge_id: number;
+  challenge_title?: string;
+  team_id: number;
+  team_name?: string;
+  team_members?: TeamMember[];
+  title: string;
+  description: string;
+  document_url?: string;
+  status: SubmissionStatus;
+  reviewer_notes?: string;
+  created_at: string;
+  updated_at: string;
+  reviewed_at?: string;
+}
+
+export interface SubmissionCreateInput {
+  title: string;
+  description: string;
+  document_url?: string;
+  team_id: number;
+  challenge_id: number;
+}
+
+export interface SubmissionStatusUpdateInput {
+  status: SubmissionStatus;
+  reviewer_notes?: string;
+}

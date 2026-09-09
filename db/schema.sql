@@ -2,7 +2,7 @@
 
 CREATE TYPE user_role AS ENUM ('organization', 'university', 'contributor', 'admin');
 CREATE TYPE challenge_status AS ENUM ('draft', 'open', 'active', 'submission', 'review', 'completed');
-CREATE TYPE submission_status AS ENUM ('submitted', 'under_review', 'accepted', 'rejected');
+CREATE TYPE submission_status AS ENUM ('submitted', 'under_review', 'shortlisted', 'accepted', 'rejected');
 
 -- Users table
 CREATE TABLE users (
@@ -98,12 +98,13 @@ CREATE TABLE submissions (
     challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
     team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
-    repo_url VARCHAR(512) NOT NULL,
-    demo_url VARCHAR(512),
-    documentation TEXT,
+    description TEXT NOT NULL,
+    document_url VARCHAR(512),
     status submission_status DEFAULT 'submitted',
+    reviewer_notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP WITH TIME ZONE
 );
 
 -- Indexes for performance
