@@ -23,7 +23,9 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     bio: Optional[str] = None
     org_name: Optional[str] = None
+    org_id: Optional[int] = None
     university_name: Optional[str] = None
+    university_id: Optional[int] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

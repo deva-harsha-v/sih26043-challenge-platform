@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db.database import engine, Base
 from models import user, organization, university, challenge, team, submission, skill
-from routes import auth, challenges, teams, submissions
+from routes import auth, challenges, teams, submissions, profiles
 
 # Initialize tables
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,7 @@ app.include_router(auth.router)
 app.include_router(challenges.router)
 app.include_router(teams.router)
 app.include_router(submissions.router)
+app.include_router(profiles.router)
 
 @app.get("/")
 def read_root():

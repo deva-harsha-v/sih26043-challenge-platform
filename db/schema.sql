@@ -25,6 +25,8 @@ CREATE TABLE organizations (
     website VARCHAR(255),
     description TEXT,
     logo_url VARCHAR(512),
+    location VARCHAR(255),
+    focus_area VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -33,9 +35,11 @@ CREATE TABLE universities (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
+    description TEXT,
     location VARCHAR(255),
     domain VARCHAR(255),
     logo_url VARCHAR(512),
+    focus_area VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

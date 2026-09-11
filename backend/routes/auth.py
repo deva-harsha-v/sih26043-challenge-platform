@@ -12,7 +12,9 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 def build_user_response(user: User) -> UserResponse:
     org_name = user.organization.name if user.organization else None
+    org_id = user.organization.id if user.organization else None
     university_name = user.university.name if user.university else None
+    university_id = user.university.id if user.university else None
     role_str = user.role.value if hasattr(user.role, 'value') else str(user.role)
     return UserResponse(
         id=user.id,
@@ -22,7 +24,9 @@ def build_user_response(user: User) -> UserResponse:
         avatar_url=user.avatar_url,
         bio=user.bio,
         org_name=org_name,
+        org_id=org_id,
         university_name=university_name,
+        university_id=university_id,
         created_at=user.created_at
     )
 

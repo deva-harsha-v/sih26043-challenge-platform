@@ -161,7 +161,10 @@ export default function ChallengeDetailPage({ params }: { params: { id: string }
               )}
 
               <p className="text-sm text-gray-600">
-                Published by <span className="font-semibold text-gray-800">{challenge.organization_name}</span>
+                Published by{' '}
+                <Link href={`/profiles/org/${challenge.organization_id}`} className="font-semibold text-indigo-600 hover:underline">
+                  {challenge.organization_name}
+                </Link>
               </p>
             </div>
 

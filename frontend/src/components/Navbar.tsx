@@ -53,6 +53,16 @@ export default function Navbar() {
             <span className={`text-xs px-2.5 py-0.5 rounded-full border capitalize font-medium ${roleColors[user.role] || 'bg-gray-100'}`}>
               {user.role}
             </span>
+            {user.role === 'organization' && user.org_id && (
+              <Link href={`/profiles/org/${user.org_id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold transition">
+                My Profile
+              </Link>
+            )}
+            {user.role === 'university' && user.university_id && (
+              <Link href={`/profiles/university/${user.university_id}`} className="text-indigo-600 hover:text-indigo-800 font-semibold transition">
+                My Profile
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="text-gray-500 hover:text-red-600 font-medium transition"

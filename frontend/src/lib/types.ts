@@ -8,7 +8,9 @@ export interface User {
   avatar_url?: string;
   bio?: string;
   org_name?: string;
+  org_id?: number;
   university_name?: string;
+  university_id?: number;
   created_at?: string;
 }
 
@@ -143,4 +145,48 @@ export interface SubmissionCreateInput {
 export interface SubmissionStatusUpdateInput {
   status: SubmissionStatus;
   reviewer_notes?: string;
+}
+
+export interface OrganizationProfile {
+  id: number;
+  user_id: number;
+  name: string;
+  description?: string;
+  website?: string;
+  logo_url?: string;
+  location?: string;
+  focus_area?: string;
+  created_at: string;
+  challenges: Challenge[];
+}
+
+export interface UniversityProfile {
+  id: number;
+  user_id: number;
+  name: string;
+  description?: string;
+  location?: string;
+  domain?: string;
+  logo_url?: string;
+  focus_area?: string;
+  created_at: string;
+  challenges: Challenge[];
+}
+
+export interface OrganizationProfileUpdateInput {
+  name?: string;
+  description?: string;
+  website?: string;
+  logo_url?: string;
+  location?: string;
+  focus_area?: string;
+}
+
+export interface UniversityProfileUpdateInput {
+  name?: string;
+  description?: string;
+  location?: string;
+  domain?: string;
+  logo_url?: string;
+  focus_area?: string;
 }

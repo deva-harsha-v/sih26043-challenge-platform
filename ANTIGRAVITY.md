@@ -63,8 +63,8 @@ The platform supports 4 explicit user roles defined in the `user_role` Enum:
   - Submission Status (`submission_status`): `submitted`, `under_review`, `shortlisted`, `accepted`, `rejected`
 - **Core Entities & Tables**:
   - `users` (`id`, `email`, `password_hash`, `full_name`, `role`, `avatar_url`, `bio`, `created_at`, `updated_at`)
-  - `organizations` (`id`, `user_id`, `name`, `website`, `description`, `logo_url`, `created_at`)
-  - `universities` (`id`, `user_id`, `name`, `location`, `domain`, `logo_url`, `created_at`)
+  - `organizations` (`id`, `user_id`, `name`, `website`, `description`, `logo_url`, `location`, `focus_area`, `created_at`)
+  - `universities` (`id`, `user_id`, `name`, `description`, `location`, `domain`, `logo_url`, `focus_area`, `created_at`)
   - `challenges` (`id`, `organization_id`, `title`, `description`, `problem_statement`, `category`, `reward`, `difficulty`, `max_team_size`, `status`, `deadline`, `created_at`, `updated_at`)
   - `skills` (`id`, `name`, `category`)
   - `challenge_skills` (`id`, `challenge_id`, `skill_id`)

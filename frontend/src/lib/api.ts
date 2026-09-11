@@ -2,7 +2,8 @@ import { getAuthToken } from './auth';
 import {
   Challenge, ChallengeCreateInput, ChallengeUpdateInput, ChallengeFilters,
   Team, TeamCreateInput,
-  Submission, SubmissionCreateInput, SubmissionStatusUpdateInput
+  Submission, SubmissionCreateInput, SubmissionStatusUpdateInput,
+  OrganizationProfile, UniversityProfile, OrganizationProfileUpdateInput, UniversityProfileUpdateInput
 } from './types';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -256,6 +257,65 @@ export async function updateSubmissionStatus(id: number | string, data: Submissi
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ detail: 'Failed to update submission status' }));
     throw new Error(errorData.detail || 'Failed to update submission status');
+  }
+
+  return res.json();
+}
+
+// Profile API Functions
+export async function getOrgProfile(id: number | string): Promise<OrganizationProfile> {
+  const res = await fetch(`${API_BASE_URL}/profiles/organizations/${id}`);
+  if (!res.ok) {
+    throw new Error('Organization profile not found');
+  }
+  return res.json();
+}
+
+export async function getUniversityProfile(id: number | string): Promise<UniversityProfile> {
+  const res = await fetch(`${API_BASE_URL}/profiles/universities/${id}`);
+  if (!res.ok) {
+    throw new Error('University profile not found');
+  }
+  return res.json();
+}
+
+export async function updateOrgProfile(id: number | string, data: OrganizationProfileUpdateInput): Promise<OrganizationProfile> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(`${API_BASE_URL}/profiles/organizations/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to update organization profile' }));
+    throw new Error(errorData.detail || 'Failed to update organization profile');
+  }
+
+  return res.json();
+}
+
+export async function updateUniversityProfile(id: number | string, data: UniversityProfileUpdateInput): Promise<UniversityProfile> {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const res = await fetch(`${API_BASE_URL}/profiles/universities/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: 'Failed to update university profile' }));
+    throw new Error(errorData.detail || 'Failed to update university profile');
   }
 
   return res.json();
